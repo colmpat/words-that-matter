@@ -22,3 +22,6 @@ bin/
 
 # Go workspace file
 go.work
+
+# Env
+.env
