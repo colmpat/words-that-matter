@@ -1,4 +1,7 @@
 # words-that-matter
+A tool for english learners that allows users to learn _words that matter_ from media in pop-culture
+
+full-stack webapp that uses Go with HTMX
 
 ## Main components
 
