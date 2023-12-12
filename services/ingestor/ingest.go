@@ -30,12 +30,12 @@ func (ing *Ingestor) ingest() {
 		}
 
 		for _, crumb := range crumbs {
-			ing.GetCrumbChan(crumb.Language) <- crumb
+			go ing.analyze(crumb)
 		}
 	}
 }
 
-// Walk the watch directory, returns a list of files to process. If a file is not valid, it is moved straight to the done directory. Updates the inProgress set.
+// Walk the watch directory, returns a list of files to process. If a file is not valid, it is moved straight to the done directory. Updates the inProgress set. Not Thread-Safe
 func (ing *Ingestor) walkWatchFiles() ([]Crumb, error) {
 	var crumbs []Crumb
 

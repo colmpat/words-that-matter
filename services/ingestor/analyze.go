@@ -18,26 +18,23 @@ type AnalysisResult struct {
 }
 
 // analyze is a goroutine that analyzes files in the crumb channel and sends the results to the analysis channel. Assumes that the channel tables have already been initialized.
-func (ing *Ingestor) analyze(lang string) {
-	in := ing.GetCrumbChan(lang)
-	strat, err := analysis.GetStrategy(lang)
+func (ing *Ingestor) analyze(crumb Crumb) {
+	strat, err := ing.GetStrategy(crumb.Language)
 	if err != nil {
 		log.Fatalf("Error getting analysis strategy: %s\n", err)
 	}
 
-	log.Printf("Starting analysis goroutine for %s\n", lang)
-
-	for crumb := range in {
-		res := ing.analyzeFile(strat, crumb)
-		ing.cleanup(crumb.Path)
-		ing.analysisChan <- res
-	}
+	res := ing.analyzeFile(strat, crumb)
+	ing.cleanup(crumb.Path)
+	ing.analysisChan <- res
 }
 
 func (ing *Ingestor) analyzeFile(strat analysis.AnalysisStrategy, crumb Crumb) AnalysisResult {
 	res := AnalysisResult{
-		Path:     crumb.Path,
-		Language: crumb.Language,
+		Path:       crumb.Path,
+		Language:   crumb.Language,
+		WordCounts: make(map[string]int),
+		Err:        nil,
 	}
 
 	// open the file
@@ -50,8 +47,6 @@ func (ing *Ingestor) analyzeFile(strat analysis.AnalysisStrategy, crumb Crumb) A
 	defer file.Close()
 
 	br := bufio.NewScanner(file)
-	res.WordCounts = make(map[string]int)
-
 	for br.Scan() {
 		line := br.Text()
 		words, err := strat.Analyze(line)

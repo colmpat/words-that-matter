@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"sync"
 	"time"
 
+	"github.com/colmpat/words-that-matter/pkg/analysis"
 	"github.com/uptrace/bun"
 )
 
@@ -14,15 +14,21 @@ type Ingestor struct {
 	watch      string
 	done       string
 	interval   time.Duration
-	inProgress RWSet
+	inProgress SyncSet
 	db         *bun.DB
 
-	// channel table for communicating with the analysis workers (one channel per language)
-	crumbChanTable map[string]chan Crumb
-	analysisChan   chan AnalysisResult
+	strategies StrategyMap
+
+	crumbChan    chan Crumb
+	analysisChan chan AnalysisResult
 }
 
-type RWSet struct {
+type StrategyMap struct {
+	sync.Mutex
+	m map[string]analysis.AnalysisStrategy
+}
+
+type SyncSet struct {
 	sync.Mutex
 	set map[string]struct{}
 }
@@ -47,66 +53,21 @@ func (ing *Ingestor) Start() {
 	go ing.upload()
 }
 
-// get the channel for a given language and start the analysis worker if it's not already running
-func (ing *Ingestor) GetCrumbChan(lang string) chan Crumb {
-	c, ok := ing.crumbChanTable[lang]
-	if !ok {
-		c = make(chan Crumb)
-		ing.crumbChanTable[lang] = c
+// GetStrategy returns the strategy for the given language.
+func (ing *Ingestor) GetStrategy(language string) (analysis.AnalysisStrategy, error) {
+	ing.strategies.Lock()
+	defer ing.strategies.Unlock()
 
-		go ing.analyze(lang)
+	// check if we have already built the strategy for this language
+	strat, ok := ing.strategies.m[language]
+	if ok {
+		return strat, nil
 	}
 
-	return c
-}
-
-type IngestorBuilder struct {
-	watch    string
-	done     string
-	interval time.Duration
-	db       *bun.DB
-}
-
-func NewIngestorBuilder() *IngestorBuilder {
-	return &IngestorBuilder{
-		watch:    "watch",
-		done:     "done",
-		interval: 5 * time.Second,
-	}
-}
-
-func (ib *IngestorBuilder) Watch(watch string) *IngestorBuilder {
-	ib.watch = watch
-	return ib
-}
-
-func (ib *IngestorBuilder) Done(done string) *IngestorBuilder {
-	ib.done = done
-	return ib
-}
-
-func (ib *IngestorBuilder) Interval(interval time.Duration) *IngestorBuilder {
-	ib.interval = interval
-	return ib
-}
-
-func (ib *IngestorBuilder) DB(db *bun.DB) *IngestorBuilder {
-	ib.db = db
-	return ib
-}
-
-func (ib *IngestorBuilder) Build() (*Ingestor, error) {
-	if ib.db == nil {
-		return nil, fmt.Errorf("DB is required")
+	strat, err := analysis.GetStrategy(language)
+	if err == nil {
+		ing.strategies.m[language] = strat
 	}
 
-	return &Ingestor{
-		watch:          ib.watch,
-		done:           ib.done,
-		interval:       ib.interval,
-		inProgress:     RWSet{set: make(map[string]struct{})},
-		db:             ib.db,
-		crumbChanTable: make(map[string]chan Crumb),
-		analysisChan:   make(chan AnalysisResult),
-	}, nil
+	return strat, err
 }
