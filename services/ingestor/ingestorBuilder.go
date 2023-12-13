@@ -5,14 +5,14 @@ import (
 	"time"
 
 	"github.com/colmpat/words-that-matter/pkg/analysis"
-	"github.com/uptrace/bun"
+	"github.com/colmpat/words-that-matter/pkg/db"
 )
 
 type IngestorBuilder struct {
 	watch    string
 	done     string
 	interval time.Duration
-	db       *bun.DB
+	db       *db.DB
 }
 
 func NewIngestorBuilder() *IngestorBuilder {
@@ -38,7 +38,7 @@ func (ib *IngestorBuilder) Interval(interval time.Duration) *IngestorBuilder {
 	return ib
 }
 
-func (ib *IngestorBuilder) DB(db *bun.DB) *IngestorBuilder {
+func (ib *IngestorBuilder) DB(db *db.DB) *IngestorBuilder {
 	ib.db = db
 	return ib
 }

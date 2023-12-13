@@ -16,7 +16,9 @@ func (ing *Ingestor) upload() {
 			Type:     string(models.MediaTypeMovie),
 		}
 
-		// todo - upload to db
-		fmt.Printf("Uploaded %s\n", meta.Name)
+		err := ing.db.UploadMedia(meta, res.WordCounts)
+		if err != nil {
+			fmt.Printf("Error uploading %s: %s\n", res.Path, err)
+		}
 	}
 }

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/colmpat/words-that-matter/pkg/analysis"
-	"github.com/uptrace/bun"
+	"github.com/colmpat/words-that-matter/pkg/db"
 )
 
 type Ingestor struct {
@@ -15,7 +15,7 @@ type Ingestor struct {
 	done       string
 	interval   time.Duration
 	inProgress SyncSet
-	db         *bun.DB
+	db         *db.DB
 
 	strategies StrategyMap
 

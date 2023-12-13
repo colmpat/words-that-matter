@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/colmpat/words-that-matter/pkg/db"
 	"github.com/joho/godotenv"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
@@ -33,8 +34,10 @@ func main() {
 	dsn := os.Getenv("DSN")
 	pgdb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
 
-	// Create a Bun db on top of it.
-	db := bun.NewDB(pgdb, pgdialect.New())
+	// make bun db
+	bdb := bun.NewDB(pgdb, pgdialect.New())
+	// make our db
+	db := db.NewDB(bdb)
 
 	// Print all queries to stdout.
 	db.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(true)))
