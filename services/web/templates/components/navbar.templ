@@ -1,0 +1,23 @@
+{{define "navbar"}}
+  <div>
+    {{template "navbar-title" .}}
+    {{template "links" .Links}}
+    {{template "auth-btn" .}}
+  </div>
+{{end}}
+
+{{block "navbar-title" .}}
+  <div>
+    <span>Github Link</span>
+    <span>/</span>
+    <h2>Words that Matter</h2>
+  </div>
+{{end}}
+
+{{ block "links" .}}
+  here go the links
+{{end}}
+
+{{ block "auth-btn" .}} 
+  Sign In! or Maybe Sign out?
+{{end}}

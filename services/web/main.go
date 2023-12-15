@@ -6,12 +6,23 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func registerAuthProviders(r *gin.Engine) {
-	// google
-	gp := auth.NewGoogleProvider()
-	auth.RegisterProvider(r, gp, "google")
+func makeAuthHandler(r *gin.Engine) *AuthHandler {
+	g := r.Group("/auth")
+	providers := []auth.Provider{
+		auth.NewGoogleProvider(),
+		// can add more providers here
+	}
 
-	// can add more providers here
+	// build the auth handler
+	return NewAuthHandler(&Config{
+		g,
+	}, providers...)
+}
+
+func makeAdminHandler(r *gin.Engine) *AdminHandler {
+	return NewAdminHandler(&Config{
+		r.Group("/admin"),
+	})
 }
 
 func init() {
@@ -22,9 +33,10 @@ func init() {
 
 func main() {
 	r := gin.Default()
-	r.LoadHTMLGlob("templates/*")
+	r.LoadHTMLGlob("templates/**/*")
 
-	registerAuthProviders(r)
+	makeAuthHandler(r)
+	makeAdminHandler(r)
 
 	r.Run()
 }

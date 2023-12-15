@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,13 +8,11 @@ import (
 type Provider interface {
 	LoginHandler(c *gin.Context)
 	CallbackHandler(c *gin.Context)
+	Name() string
 }
 
 // RegisterProvider registers a provider's login and callback handlers on the given gin engine.
-func RegisterProvider(r *gin.Engine, provider Provider, providerName string) {
-	loginPath := fmt.Sprintf("auth/%s/login", providerName)
-	callbackPath := fmt.Sprintf("auth/%s/callback", providerName)
-
-	r.GET(loginPath, provider.LoginHandler)
-	r.GET(callbackPath, provider.CallbackHandler)
+func RegisterProvider(g *gin.RouterGroup, provider Provider) {
+	g.GET("login", provider.LoginHandler)
+	g.GET("callback", provider.CallbackHandler)
 }

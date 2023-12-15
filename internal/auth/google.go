@@ -36,6 +36,10 @@ func NewGoogleProvider() *GoogleProvider {
 	}
 }
 
+func (gp *GoogleProvider) Name() string {
+	return "google"
+}
+
 func (gp *GoogleProvider) LoginHandler(c *gin.Context) {
 	url := gp.config.AuthCodeURL(gp.oauthStateString)
 	c.Redirect(http.StatusTemporaryRedirect, url)
