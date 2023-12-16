@@ -1,9 +1,12 @@
 package auth
 
 import (
+	"encoding/json"
 	"net/http"
 	"os"
 
+	"github.com/colmpat/words-that-matter/pkg/db"
+	"github.com/colmpat/words-that-matter/pkg/models"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
 )
@@ -59,7 +62,32 @@ func (gp *GoogleProvider) CallbackHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	user, err := gp.GetUserEmail(token)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-	// todo link with db?
+	SetUser(c, user)
+	c.Redirect(http.StatusFound, "/")
+}
+
+func (gp *GoogleProvider) GetUserEmail(token *oauth2.Token) (models.User, error) {
+	client := gp.config.Client(oauth2.NoContext, token)
+	resp, err := client.Get("https://www.googleapis.com/oauth2/v3/userinfo")
+	if err != nil {
+		return models.User{}, err
+	}
+	defer resp.Body.Close()
+
+	var userInfo struct {
+		Email string `json:"email"`
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&userInfo)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	return db.ProdDB.GetUserByEmail(userInfo.Email)
 }
