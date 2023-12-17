@@ -1,0 +1,24 @@
+{{ define "publish" }}
+  <div class="flex flex-col">
+    <h2 class="text-2xl font-bold">Staged Media</h2>
+    <hr/>
+    <div class="flex flex-col mt-6 gap-4">
+      {{ range $i, $media := .Media }}
+        {{ template "media" $media }}
+      {{ end }}
+    </div>
+  </div>
+{{ end }}
+
+{{ define "media" }}
+    <a 
+      class="flex gap-8 p-4 rounded-lg items-center border-2 max-w-1/2 hover:border-primaryPurple transition duration-200 ease-in-out"
+      href="/admin/upload/{{ .ID }}"
+    >
+      <h3 class="text-xl font-semibold">{{ .Name }}</h3>
+      <p class="text-fgDefault">{{ .Type }}</p>
+      <div class="text-fgMuted italic rounded border px-2 py-1">
+        {{ .Language }}
+      </div>
+    </a>
+{{ end }}

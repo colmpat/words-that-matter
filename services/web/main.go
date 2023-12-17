@@ -1,10 +1,17 @@
 package main
 
 import (
+	"os"
+
 	"github.com/colmpat/words-that-matter/internal/auth"
+	"github.com/colmpat/words-that-matter/pkg/db"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
+
+type Link struct {
+	URL  string
+	Text string
+}
 
 func makeAuthHandler(r *gin.Engine) *AuthHandler {
 	g := r.Group("/auth")
@@ -26,9 +33,12 @@ func makeAdminHandler(r *gin.Engine) *AdminHandler {
 }
 
 func init() {
-	if err := godotenv.Load(); err != nil {
-		panic("Error loading .env file")
-	}
+	validateEnv()
+
+	db.InitDB(
+		os.Getenv("PROD_DSN"),
+		os.Getenv("STAGING_DSN"),
+	)
 }
 
 func main() {

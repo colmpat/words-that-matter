@@ -2,8 +2,18 @@ package db
 
 import (
 	"context"
+	"database/sql"
+	"sync"
 
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/pgdialect"
+	"github.com/uptrace/bun/driver/pgdriver"
+)
+
+var (
+	ProdDB    *DB
+	StagingDB *DB
+	once      = &sync.Once{}
 )
 
 type DB struct {
@@ -11,6 +21,24 @@ type DB struct {
 
 	// context for queries
 	Ctx context.Context
+}
+
+// InitDB initializes the global database instances
+func InitDB(prodDSN, stagingDSN string) {
+	once.Do(func() {
+		ProdDB = MakeDB(prodDSN)
+		StagingDB = MakeDB(stagingDSN)
+	})
+}
+
+// MakeDB makes a new DB instance from a DSN using the pg driver
+func MakeDB(dsn string) *DB {
+	pgdb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
+
+	// make bun db
+	bdb := bun.NewDB(pgdb, pgdialect.New())
+	// make our db
+	return NewDB(bdb)
 }
 
 // NewDB returns a new DB instance. Creates a background context for queries.

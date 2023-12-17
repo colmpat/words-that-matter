@@ -1,14 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://unpkg.com/htmx.org@1.8.0"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          canvas: '#fff',
+          canvasInset: '#f6f8fa',
+
+          fgDefault: '#24292F',
+          fgMuted: '#57606a',
+
+          borderDefault: 'rgba(27,31,36,.15)',
+          primaryPurple: '#8250df'
+        }
+      }
+    }
+  };
+  </script>
   <title>
     Publish | Words that Matter
   </title>
 </head>
 <body>
   {{ template "navbar" . }}
-  
-  <p>For each media entry, show a link to its page</p>
+  <div class='max-w-[800px] mx-auto pt-6'>
+    {{ template "publish" . }}
+  </div>
 </body>
 </html>
